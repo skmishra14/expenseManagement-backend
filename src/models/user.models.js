@@ -1,6 +1,11 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import dotevn from 'dotenv';
+
+dotevn.config({
+  path: './.env'
+});
 
 const userSchema = new Schema(
   {
