@@ -1,6 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+
+dotenv.config({
+    path: './.env'
+});
 
 const app = express();
 
@@ -13,5 +18,9 @@ app.use(express.urlencoded({extended: true, limit: '16kb'}));
 app.use(express.static('public'));
 
 app.use(cookieParser());
+
+// calling router with path
+import userRouter from "../src/routers/user.router.js"
+app.use('/user', userRouter);
 
 export default app;
