@@ -11,6 +11,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
     user.refreshToken = refreshToken;
     user.save({ validateBeforeSave: false });
+    
     return { accessToken, refreshToken };
   } catch (error) {
     throw new ApiError(500, "Can't genarate access or refresh Token");
@@ -86,7 +87,7 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(400, "No user with email or username is present!");
   }
-  
+
   const isPasswordCorrect = await user.isPasswordCorrect(password);
 
   if (!isPasswordCorrect) {
@@ -113,4 +114,43 @@ const loginUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, "User LoggedIn successfully", loggedInUser));
 });
 
-export { registerUser, loginUser };
+const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        refreshToken: undefined,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  const option = {
+    httpOption: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", option)
+    .cookie("refreshToken", option)
+    .json(new ApiResponse(200, "User logged Out successfully", {}));
+});
+
+const getUserDetails = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(400, "user does not exist");
+  }
+
+  const showUserDeatils = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Got the user details", showUserDeatils));
+});
+
+export { registerUser, loginUser, logoutUser, getUserDetails };

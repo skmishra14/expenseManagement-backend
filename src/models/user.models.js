@@ -1,10 +1,10 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import dotevn from 'dotenv';
+import dotevn from "dotenv";
 
 dotevn.config({
-  path: './.env'
+  path: "./.env",
 });
 
 const userSchema = new Schema(
@@ -52,7 +52,7 @@ const userSchema = new Schema(
 
 // before saving the data just hash that
 userSchema.pre("save", async function () {
-  if (!this.isModified('password')) return;
+  if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
 });
 
