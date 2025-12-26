@@ -1,8 +1,12 @@
 import { Router } from "express";
-import { working } from "../controllers/user.controller.js";
+import { registerUser } from "../controllers/user.controller.js";
+import multer from "multer";
+
+// allows to request data from the form
+const upload = multer();
 
 const router = Router();
 
-router.route('/check').get(working);
+router.route('/register-user').post(upload.none(), registerUser);
 
 export default router;
