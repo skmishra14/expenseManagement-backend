@@ -93,7 +93,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "password is incorrect");
   }
 
-  const { accessToken, refreshToken } = generateAccessAndRefreshTokens(
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id
   );
 
