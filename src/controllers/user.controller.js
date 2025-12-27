@@ -72,7 +72,7 @@ const loginUser = asyncHandler(async (req, res) => {
   // send the response that user is logged-In
   const { userName, email, password } = req.body;
 
-  if (!email || !userName) {
+  if (!(email || userName)) {
     throw new ApiError(400, "email or userName is missing");
   }
 

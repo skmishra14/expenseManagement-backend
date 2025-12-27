@@ -23,4 +23,7 @@ app.use(cookieParser());
 import userRouter from "../src/routers/user.router.js"
 app.use('/user', userRouter);
 
+import expenseRouter from "../src/routers/expense.router.js"
+app.use('/expense', expenseRouter);
+
 export default app;

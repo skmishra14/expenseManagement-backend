@@ -1,4 +1,6 @@
 import mongoose, { Schema } from "mongoose";
+import { User } from "../models/user.models.js";
+import { Category } from "../models/category.models.js"
 
 const expenseSchema = new Schema(
   {
