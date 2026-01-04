@@ -17,6 +17,7 @@ const expenseSchema = new Schema(
       type: String,
       required: true,
       enum: ["income", "expense", "investment"],
+      index:true
     },
     categoryId: {
       type: Schema.Types.ObjectId,

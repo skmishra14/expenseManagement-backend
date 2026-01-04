@@ -5,11 +5,13 @@ const categorySchema = new Schema(
     name: {
       type: String,
       required: true,
+      index: true
     },
     type: {
       type: String,
       required: true,
       enum: ["income", "expense", "investment"],
+      index: true
     },
   },
   { timestamps: true }
