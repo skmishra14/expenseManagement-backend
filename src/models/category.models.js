@@ -9,7 +9,7 @@ const categorySchema = new Schema(
     type: {
       type: String,
       required: true,
-      enum: ["income", "expense"],
+      enum: ["income", "expense", "investment"],
     },
   },
   { timestamps: true }

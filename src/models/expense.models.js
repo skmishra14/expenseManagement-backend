@@ -29,6 +29,7 @@ const expenseSchema = new Schema(
       type: Boolean,
       require: true,
       enum: ["true", "false"],
+      default: false
     },
   },
   { timestamps: true }
