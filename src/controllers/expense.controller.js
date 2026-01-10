@@ -146,4 +146,42 @@ const updateExpense = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, "Fields updated", patchExpense));
 });
-export { createExpense, getExpenses, updateExpense };
+
+const deleteExpense = asyncHandler(async (req, res) => {
+  // get expense id that needs to be deleted.
+  // get user id using req.user._id
+  // find if expense for that use exists
+  // just set the isDeleted flag to true
+  // return with the updated details
+  const expenseId = req.params.id;
+  const userId = req.user._id;
+
+  const findExpense = {
+    _id: expenseId,
+    userId: userId,
+    isDeleted: false,
+  };
+
+  const expense = await Expense.findOne(findExpense);
+  if (!expense) {
+    throw new ApiError(404, "Expense does not exist");
+  }
+
+  const deletedExpense = await Expense.findByIdAndUpdate(
+    expenseId,
+    {
+      $set: {
+        isDeleted: true,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "deleted the record", deletedExpense));
+});
+
+export { createExpense, getExpenses, updateExpense, deleteExpense };
