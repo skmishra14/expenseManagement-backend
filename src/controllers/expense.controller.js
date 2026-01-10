@@ -20,7 +20,9 @@ const createExpense = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Amount can not be negative");
   }
 
-  if (type !== "income" || type !== "expense" || type != "investment") {
+  const typeEnum = ['income', 'expense', 'investment'];
+
+  if (!typeEnum.includes(type)) {
     throw new ApiError(400, "Selected type does not exist");
   }
 
@@ -98,8 +100,8 @@ const updateExpense = asyncHandler(async (req, res) => {
     }
   });
 
-  if (Object.keys(updatedField.length) === 0) {
-    throw new ApiError(400, "No fields to update");
+  if (Object.keys(updatedField).length === 0) {
+    throw new ApiError(400, "No field to update");
   }
 
   const typeEnum = ["investment", "expense", "income"];
