@@ -67,4 +67,83 @@ const getExpenses = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Got expenses report", findExpense));
 });
 
-export { createExpense, getExpenses };
+const updateExpense = asyncHandler(async (req, res) => {
+  // get the expenseId from url params
+  // get userId from the req.user
+  // validate if the selected expenseId and userId exists
+  // make sure only the necessary fields gets update
+  // update with new values
+  // return the updated response.
+  const expenseId = req.params.id;
+  const userId = req.user._id;
+
+  const finderObj = {
+    _id: expenseId,
+    userId: userId,
+    isDeleted: false,
+  };
+
+  const expense = await Expense.findOne(finderObj);
+  if (!expense) {
+    throw new ApiError(404, "expenseId does not exist");
+  }
+
+  const updateableFields = ["amount", "type", "description"];
+
+  const updatedField = {};
+
+  updateableFields.forEach((field) => {
+    if (field in req.body) {
+      updatedField[field] = req.body[field];
+    }
+  });
+
+  if (Object.keys(updatedField.length) === 0) {
+    throw new ApiError(400, "No fields to update");
+  }
+
+  const typeEnum = ["investment", "expense", "income"];
+
+  // Validation checks for updated data
+  // check if amount is present
+  const updatedAmount = updatedField.hasOwnProperty("amount")
+    ? Number(updatedField.amount)
+    : null;
+  // check if type exist
+  const updatedType = updatedField.hasOwnProperty("type")
+    ? updatedField.type
+    : null;
+
+  if (updatedAmount !== null && updatedAmount < 0 && updatedAmount === NaN) {
+    throw new ApiError(400, "updated amount can not be negative");
+  }
+
+  if (updatedType !== null && !typeEnum.includes(updatedType)) {
+    throw new ApiError(
+      400,
+      "updated type not part of enum, invalid updated value"
+    );
+  }
+
+  const patchExpense = await Expense.findByIdAndUpdate(
+    expenseId,
+    {
+      $set: updatedField,
+    },
+    {
+      new: true,
+    }
+  );
+
+  if (!patchExpense) {
+    throw new ApiError(
+      500,
+      "Something went wrong in updating the expense details"
+    );
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Fields updated", patchExpense));
+});
+export { createExpense, getExpenses, updateExpense };
