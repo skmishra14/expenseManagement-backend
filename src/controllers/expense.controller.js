@@ -64,7 +64,7 @@ const getExpenses = asyncHandler(async (req, res) => {
       filterQuery.type = modifiedType;
     }
   }
-  // adding filter for amount will search for max or min or between
+  // adding filter for amount, will search for max or min or between
   // things to consider
   // minAmount, maxAmount exist and strictly >= 0
   // if minAmount and maxAmount both exists then make sure minAmt <= maxAmt
@@ -110,8 +110,8 @@ const getExpenses = asyncHandler(async (req, res) => {
     filterQuery.amount = amountObject;
   }
 
-  if (description) filterQuery.description = description;
-  if (start || end) {
+  if (description !== undefined) filterQuery.description = description;
+  if (start !== undefined || end !== undefined) {
     filterQuery.date = {};
     if (start) filterQuery.date.$gte = new Date(start);
     if (end) filterQuery.date.$lte = new Date(end);
