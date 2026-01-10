@@ -2,6 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { Expense } from "../models/expense.models.js";
+import { typeEnum } from "../constant.js";
 
 const createExpense = asyncHandler(async (req, res) => {
   // get amount, type, description
@@ -19,8 +20,6 @@ const createExpense = asyncHandler(async (req, res) => {
   if (Number(amount) < 0) {
     throw new ApiError(400, "Amount can not be negative");
   }
-
-  const typeEnum = ["income", "expense", "investment"];
 
   if (!typeEnum.includes(type)) {
     throw new ApiError(400, "Selected type does not exist");
@@ -52,7 +51,19 @@ const getExpenses = asyncHandler(async (req, res) => {
     isDeleted: false,
   };
 
-  if (type) filterQuery.type = type;
+  if (type !== undefined) {
+    // validate if type exists
+    // check if type is part of enum
+    const modifiedType = type.toLowerCase();
+    if (!typeEnum.includes(modifiedType)) {
+      throw new ApiError(
+        400,
+        "type must be one of: income, expense, investment"
+      );
+    } else {
+      filterQuery.type = modifiedType;
+    }
+  }
   // adding filter for amount will search for max or min or between
   // things to consider
   // minAmount, maxAmount exist and strictly >= 0
@@ -148,8 +159,6 @@ const updateExpense = asyncHandler(async (req, res) => {
   if (Object.keys(updatedField).length === 0) {
     throw new ApiError(400, "No field to update");
   }
-
-  const typeEnum = ["investment", "expense", "income"];
 
   // Validation checks for updated data
   // check if amount is present
