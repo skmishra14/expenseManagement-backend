@@ -20,7 +20,7 @@ const createExpense = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Amount can not be negative");
   }
 
-  const typeEnum = ['income', 'expense', 'investment'];
+  const typeEnum = ["income", "expense", "investment"];
 
   if (!typeEnum.includes(type)) {
     throw new ApiError(400, "Selected type does not exist");
@@ -45,7 +45,7 @@ const createExpense = asyncHandler(async (req, res) => {
 const getExpenses = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
-  const { type, amount, description, start, end } = req.query;
+  const { type, minAmount, maxAmount, description, start, end } = req.query;
 
   const filterQuery = {
     userId,
@@ -53,7 +53,52 @@ const getExpenses = asyncHandler(async (req, res) => {
   };
 
   if (type) filterQuery.type = type;
-  if (amount) filterQuery.amount = Number(amount);
+  // adding filter for amount will search for max or min or between
+  // things to consider
+  // minAmount, maxAmount exist and strictly >= 0
+  // if minAmount and maxAmount both exists then make sure minAmt <= maxAmt
+  const amountObject = {};
+  if (minAmount || maxAmount) {
+    const minAmt = Number(minAmount);
+    const maxAmt = Number(maxAmount);
+
+    if (
+      minAmount !== undefined &&
+      maxAmount !== undefined &&
+      !Number.isNaN(minAmt) &&
+      !Number.isNaN(maxAmt)
+    ) {
+      if (minAmt > maxAmt) {
+        throw new ApiError(
+          400,
+          "minimum amount can not be greater than maximum amount"
+        );
+      }
+    }
+    if (minAmount !== undefined) {
+      if (Number.isNaN(minAmt)) {
+        throw new ApiError(400, "invalid input");
+      } else if (minAmt < 0) {
+        throw new ApiError(400, "amount is less than 0");
+      } else {
+        amountObject.$gte = minAmt;
+      }
+    }
+    if (maxAmount !== undefined) {
+      if (Number.isNaN(maxAmt)) {
+        throw new ApiError(400, "invalid input");
+      } else if (maxAmt < 0) {
+        throw new ApiError(400, "amount is less than 0");
+      } else {
+        amountObject.$lte = maxAmt;
+      }
+    }
+  }
+  // if amount object exist then update to filterQuery
+  if (Object.keys(amountObject).length > 0) {
+    filterQuery.amount = amountObject;
+  }
+
   if (description) filterQuery.description = description;
   if (start || end) {
     filterQuery.date = {};
