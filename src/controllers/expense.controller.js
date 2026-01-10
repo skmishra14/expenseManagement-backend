@@ -42,12 +42,9 @@ const createExpense = asyncHandler(async (req, res) => {
 });
 
 const getExpenses = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-
   const { type, minAmount, maxAmount, description, start, end } = req.query;
 
   const filterQuery = {
-    userId,
     isDeleted: false,
   };
 
@@ -133,11 +130,9 @@ const updateExpense = asyncHandler(async (req, res) => {
   // update with new values
   // return the updated response.
   const expenseId = req.params.id;
-  const userId = req.user._id;
 
   const finderObj = {
     _id: expenseId,
-    userId: userId,
     isDeleted: false,
   };
 
@@ -210,11 +205,9 @@ const deleteExpense = asyncHandler(async (req, res) => {
   // just set the isDeleted flag to true
   // return with the updated details
   const expenseId = req.params.id;
-  const userId = req.user._id;
 
   const findExpense = {
     _id: expenseId,
-    userId: userId,
     isDeleted: false,
   };
 
