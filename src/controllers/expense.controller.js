@@ -3,12 +3,14 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { Expense } from "../models/expense.models.js";
 import { typeEnum } from "../constant.js";
+import { use } from "react";
 
 const createExpense = asyncHandler(async (req, res) => {
   // get amount, type, description
   // validate is entered correctly
   // create the record
   const { amount, type, description, isDeleted } = req.body;
+  const usesrId = req.user._id;
 
   if (!type) {
     throw new ApiError(400, "Required fields are empty");
@@ -27,6 +29,7 @@ const createExpense = asyncHandler(async (req, res) => {
 
   const expense = await Expense.create({
     amount: Number(amount),
+    userId: usesrId,
     type: type,
     description: description || "",
     isDeleted: isDeleted || false,
@@ -43,8 +46,9 @@ const createExpense = asyncHandler(async (req, res) => {
 
 const getExpenses = asyncHandler(async (req, res) => {
   const { type, minAmount, maxAmount, description, start, end } = req.query;
-
+  const userId = req.user._id;
   const filterQuery = {
+    userId: userId,
     isDeleted: false,
   };
 
@@ -130,9 +134,11 @@ const updateExpense = asyncHandler(async (req, res) => {
   // update with new values
   // return the updated response.
   const expenseId = req.params.id;
+  const userId = req.user._id;
 
   const finderObj = {
     _id: expenseId,
+    userId: userId,
     isDeleted: false,
   };
 
@@ -205,9 +211,11 @@ const deleteExpense = asyncHandler(async (req, res) => {
   // just set the isDeleted flag to true
   // return with the updated details
   const expenseId = req.params.id;
+  const userId = req.user._id;
 
   const findExpense = {
     _id: expenseId,
+    userId: userId,
     isDeleted: false,
   };
 
