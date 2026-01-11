@@ -46,7 +46,9 @@ const createExpense = asyncHandler(async (req, res) => {
 
 const getExpenses = asyncHandler(async (req, res) => {
   const { type, minAmount, maxAmount, description, start, end } = req.query;
+  
   const userId = req.user._id;
+  
   const filterQuery = {
     userId: userId,
     isDeleted: false,
@@ -171,7 +173,7 @@ const updateExpense = asyncHandler(async (req, res) => {
     ? updatedField.type
     : null;
 
-  if (updatedAmount !== null && updatedAmount < 0 && updatedAmount === NaN) {
+  if (updatedAmount !== null && (updatedAmount < 0 || Number.isNaN(updatedAmount))) {
     throw new ApiError(400, "updated amount can not be negative");
   }
 
