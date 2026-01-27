@@ -3,7 +3,6 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { Expense } from "../models/expense.models.js";
 import { typeEnum } from "../constant.js";
-import { use } from "react";
 
 const createExpense = asyncHandler(async (req, res) => {
   // get amount, type, description
