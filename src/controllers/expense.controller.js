@@ -46,6 +46,12 @@ const createExpense = asyncHandler(async (req, res) => {
 const getExpenses = asyncHandler(async (req, res) => {
   const { type, minAmount, maxAmount, description, start, end } = req.query;
   const userId = req.user._id;
+  
+  // filter query
+  const filterQuery = {
+    userId: userId,
+    isDeleted: false,
+  };
 
   // pagination setup logic
   let page = parseInt(req.query.page) || 1;
@@ -54,11 +60,21 @@ const getExpenses = asyncHandler(async (req, res) => {
 
   if (page < 1) page = 1;
   if (limit > 50) limit = 50;
-  
-  // filter query
-  const filterQuery = {
-    userId: userId,
-    isDeleted: false,
+
+  // sorting logic
+  let sortBy = req.query.sortBy || "createdAt";
+  let orderBy = req.query.orderBy === 'asc' ? '1' : '-1';
+
+  // list out the sortable fields
+  const allowedSortable = ['amout', 'type', 'categoryId'];
+
+  if (!allowedSortable.includes(sortBy)) {
+    sortBy = 'createdAt'
+  }
+
+  // sortable object
+  const sortObject = {
+    [sortBy] : orderBy
   };
 
   if (type !== undefined) {
@@ -133,7 +149,7 @@ const getExpenses = asyncHandler(async (req, res) => {
   // performance enhancement by parallel execution
   const [totalCount, findExpense] = await Promise.all([
     Expense.countDocuments(filterQuery),
-    Expense.find(filterQuery).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Expense.find(filterQuery).sort(sortObject).skip(skip).limit(limit),
   ]);
 
   // paginate the response
