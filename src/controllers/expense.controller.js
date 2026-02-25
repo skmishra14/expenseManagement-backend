@@ -45,9 +45,17 @@ const createExpense = asyncHandler(async (req, res) => {
 
 const getExpenses = asyncHandler(async (req, res) => {
   const { type, minAmount, maxAmount, description, start, end } = req.query;
-  
   const userId = req.user._id;
+
+  // pagination setup logic
+  let page = parseInt(req.query.page) || 1;
+  let limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  if (page < 1) page = 1;
+  if (limit > 50) limit = 50;
   
+  // filter query
   const filterQuery = {
     userId: userId,
     isDeleted: false,
@@ -60,7 +68,7 @@ const getExpenses = asyncHandler(async (req, res) => {
     if (!typeEnum.includes(modifiedType)) {
       throw new ApiError(
         400,
-        "type must be one of: income, expense, investment"
+        "type must be one of: income, expense, investment",
       );
     } else {
       filterQuery.type = modifiedType;
@@ -84,7 +92,7 @@ const getExpenses = asyncHandler(async (req, res) => {
       if (minAmt > maxAmt) {
         throw new ApiError(
           400,
-          "minimum amount can not be greater than maximum amount"
+          "minimum amount can not be greater than maximum amount",
         );
       }
     }
@@ -119,12 +127,39 @@ const getExpenses = asyncHandler(async (req, res) => {
     if (end) filterQuery.date.$lte = new Date(end);
   }
 
-  const findExpense = await Expense.find(filterQuery);
+  // get the document count and total pages
+  // const totalCount = await Expense.countDocuments(filterQuery);
+
+  // performance enhancement by parallel execution
+  const [totalCount, findExpense] = await Promise.all([
+    Expense.countDocuments(filterQuery),
+    Expense.find(filterQuery).sort({ createdAt: -1 }).skip(skip).limit(limit),
+  ]);
+
+  // paginate the response
+  // const findExpense = await Expense.find(filterQuery)
+  //   .sort({ createdAt: -1 })
+  //   .skip(skip)
+  //   .limit(limit);
   //   findExpense will be [] when it doesn't find anything
   //   so no need to handle this condition
+
+  const totalPages = Math.ceil(totalCount / limit);
+
+  // format the response
+  const response = {
+    data: findExpense,
+    pagination: {
+      totalCount,
+      totalPages,
+      currentPage: page,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
+  };
   return res
     .status(200)
-    .json(new ApiResponse(200, "Got expenses report", findExpense));
+    .json(new ApiResponse(200, "Got expenses report", response));
 });
 
 const updateExpense = asyncHandler(async (req, res) => {
@@ -172,14 +207,17 @@ const updateExpense = asyncHandler(async (req, res) => {
     ? updatedField.type
     : null;
 
-  if (updatedAmount !== null && (updatedAmount < 0 || Number.isNaN(updatedAmount))) {
+  if (
+    updatedAmount !== null &&
+    (updatedAmount < 0 || Number.isNaN(updatedAmount))
+  ) {
     throw new ApiError(400, "updated amount can not be negative");
   }
 
   if (updatedType !== null && !typeEnum.includes(updatedType)) {
     throw new ApiError(
       400,
-      "updated type not part of enum, invalid updated value"
+      "updated type not part of enum, invalid updated value",
     );
   }
 
@@ -190,13 +228,13 @@ const updateExpense = asyncHandler(async (req, res) => {
     },
     {
       new: true,
-    }
+    },
   );
 
   if (!patchExpense) {
     throw new ApiError(
       500,
-      "Something went wrong in updating the expense details"
+      "Something went wrong in updating the expense details",
     );
   }
 
@@ -234,7 +272,7 @@ const deleteExpense = asyncHandler(async (req, res) => {
     },
     {
       new: true,
-    }
+    },
   );
 
   return res
